@@ -1,0 +1,36 @@
+# Build stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Arguments and Environment
+ARG VITE_API_BASE_URL=http://localhost:8000
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+
+# Copy package management files
+COPY frontend/package.json frontend/package-lock.json* ./
+
+# Install dependencies using npm
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+# Copy source code
+COPY frontend/ ./
+
+# Build SvelteKit app
+RUN npm run build
+
+# Production runner stage
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/node_modules ./node_modules
+
+EXPOSE 5173
+
+ENV PORT=5173
+ENV HOST=0.0.0.0
+
+CMD ["node", "build"]

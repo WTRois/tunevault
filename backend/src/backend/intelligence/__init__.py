@@ -1,0 +1,1 @@
+"""Library intelligence package (blueprint §13/§14) — duplicates + health."""

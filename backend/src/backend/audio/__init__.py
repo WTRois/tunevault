@@ -1,0 +1,1 @@
+"""Audio analysis package (blueprint §12) — ffmpeg/loudness/spectral modules."""

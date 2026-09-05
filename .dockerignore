@@ -1,0 +1,17 @@
+.git
+.gitignore
+.dockerignore
+README.md
+docs/
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.venv
+**/node_modules
+**/.svelte-kit
+**/build
+**/dist
+data/*.db
+storage/covers/*
+!storage/covers/.gitkeep

@@ -1,0 +1,65 @@
+name: tunevault
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: tunevault-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./storage:/app/storage
+      - ${MUSIC_DIR:-./music}:/music
+    environment:
+      - DATABASE_URL=sqlite:////app/data/tunevault.db
+      - STORAGE_DIR=/app/storage
+      - COVERS_DIR=/app/storage/covers
+      - DOWNLOADS_DIR=/app/storage/downloads
+      - MUSIC_DIR=/music
+      - PROJECT_NAME=TuneVault
+      - VERSION=2.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: tunevault-worker
+    command: ["uv", "run", "python", "-m", "backend.workers.worker"]
+    volumes:
+      - ./data:/app/data
+      - ./storage:/app/storage
+      - ${MUSIC_DIR:-./music}:/music
+    environment:
+      - DATABASE_URL=sqlite:////app/data/tunevault.db
+      - STORAGE_DIR=/app/storage
+      - COVERS_DIR=/app/storage/covers
+      - DOWNLOADS_DIR=/app/storage/downloads
+      - MUSIC_DIR=/music
+      - PROJECT_NAME=TuneVault
+      - VERSION=2.0.0
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: tunevault-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

@@ -1,0 +1,38 @@
+# Use official Python 3.11 slim image
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
+# Install system dependencies (FFmpeg, libsndfile1 for Librosa)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libsndfile1 \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install uv package manager
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Copy pyproject.toml, lock file, README, and source code
+COPY backend/pyproject.toml backend/README.md* backend/uv.lock* /app/
+COPY backend/src /app/src
+COPY backend/alembic.ini /app/alembic.ini
+COPY backend/alembic /app/alembic
+
+# Install dependencies using uv
+RUN uv sync --no-dev
+
+# Create data and storage directories
+RUN mkdir -p /app/data /app/storage/covers /music
+
+ENV PYTHONPATH="/app/src"
+
+EXPOSE 8000
+
+CMD ["uv", "run", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

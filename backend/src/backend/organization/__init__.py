@@ -1,0 +1,1 @@
+"""Organization package: safe change plans (blueprint §15)."""

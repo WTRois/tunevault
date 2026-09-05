@@ -1,0 +1,1 @@
+"""Fingerprint package — Chromaprint fpcalc wrapper (blueprint §32 discipline)."""

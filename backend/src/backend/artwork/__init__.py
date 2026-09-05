@@ -1,0 +1,1 @@
+"""Artwork pipeline (blueprint §11): validate → score → select."""
